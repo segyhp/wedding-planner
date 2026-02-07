@@ -34,3 +34,14 @@ pnpm-debug.log*
 # Docker volumes
 postgres_data/
 redis_data/
+
+# Documentation (kept locally, not in git)
+docs/*.md
+!docs/.gitkeep
+
+# Seed data (PDFs, spreadsheets — too large for git)
+data/**/*.pdf
+data/**/*.xlsx
+data/**/*.xls
+data/**/*.csv
+!data/**/.gitkeep
