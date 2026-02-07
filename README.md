@@ -1,9 +1,9 @@
-# 💒 Segy & Azizah Wedding Planner
+# 💒 Wedding Planner
 
-> A full-stack wedding planning application built with **Rust** and **Vue 3** — combining a real wedding planning tool with a learning project for modern web development.
+> A high-concurrency, full-stack wedding planning platform built with **Rust** and **Vue 3** — designed as a SaaS product for event organizers and couples.
 
-[![Rust](https://img.shields.io/badge/Rust-1.75+-orange?logo=rust)](https://www.rust-lang.org/)
-[![Vue](https://img.shields.io/badge/Vue-3.4+-green?logo=vue.js)](https://vuejs.org/)
+[![Rust](https://img.shields.io/badge/Rust-1.85+-orange?logo=rust)](https://www.rust-lang.org/)
+[![Vue](https://img.shields.io/badge/Vue-3.5+-green?logo=vue.js)](https://vuejs.org/)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16+-blue?logo=postgresql)](https://www.postgresql.org/)
 [![License](https://img.shields.io/badge/License-MIT-yellow)](LICENSE)
 
@@ -11,19 +11,17 @@
 
 ## 🎯 About This Project
 
-This wedding planner is being built for **Segy & Azizah's wedding** on **September 19-20, 2026** in Semarang, Indonesia. It serves dual purposes:
-
-1. **Practical Tool** — Manage budget, vendors, guests, and timeline for the actual wedding
-2. **Learning Project** — First Rust project for a developer coming from Go/PHP background
+A wedding planning platform that helps couples and event organizers manage their entire wedding — budget, vendors, guests, and invitations — all in one place.
 
 ### Key Features
 
-- 💰 **Budget Management** — Track expenses with ownership (Segy/Azizah/Both)
+- 💰 **Budget Management** — Track expenses with ownership split between parties
 - 🏪 **Vendor Management** — Compare and book wedding vendors
-- 👥 **Guest Management** — RSVP tracking with custom fields
+- 👥 **Guest Management** — RSVP tracking with custom fields and bulk import
 - 📱 **Mobile Invitation** — WhatsApp-friendly invitation page
 - 📊 **Dashboard** — Real-time wedding planning overview
-- 🔍 **Wedding Crawler** — Auto-discover Semarang wedding events
+- 🔍 **Wedding Crawler** — Auto-discover wedding vendor events
+- ⚡ **High Concurrency** — Built for scale with async Rust and connection pooling
 
 ---
 
@@ -31,11 +29,22 @@ This wedding planner is being built for **Segy & Azizah's wedding** on **Septemb
 
 | Layer | Technology | Purpose |
 |-------|------------|---------|
-| **Backend** | Rust + Actix-web | REST API |
+| **Backend** | Rust + Actix-web | REST API (client-facing) |
+| **Internal RPC** | gRPC (Tonic) | Service-to-service communication |
 | **Frontend** | Vue 3 + Vite + TypeScript | SPA |
 | **Database** | PostgreSQL 16 | Primary data store |
-| **Cache** | Redis (Upstash) | Session & caching |
+| **Cache** | Redis | Session, caching, rate limiting |
+| **NoSQL** | MongoDB (optional) | Flexible vendor data, event logs |
 | **Auth** | JWT + argon2 | Authentication |
+
+### API Strategy
+
+| Scenario | Protocol | Why |
+|----------|----------|-----|
+| Frontend ↔ Backend | REST | Browser-friendly, JSON |
+| API ↔ Crawler | gRPC | Fast, typed, internal |
+| API ↔ Notifications | gRPC | Low-latency, streaming |
+| Third-party integrations | REST | Universal compatibility |
 
 ### Hosting Architecture
 
@@ -44,18 +53,17 @@ This wedding planner is being built for **Segy & Azizah's wedding** on **Septemb
 │  Cloudflare │────▶│   Vercel    │     │  Supabase   │
 │  (DNS/CDN)  │     │  (Vue SPA)  │     │ (PostgreSQL)│
 └─────────────┘     └──────┬──────┘     └──────▲──────┘
-                          │                    │
-                          ▼                    │
-                   ┌─────────────┐             │
-                   │   Railway   │─────────────┘
-                   │ (Rust API)  │
-                   └──────┬──────┘
-                          │
-                          ▼
-                   ┌─────────────┐
-                   │   Upstash   │
-                   │   (Redis)   │
-                   └─────────────┘
+                           │                    │
+                           ▼                    │
+                    ┌─────────────┐             │
+                    │   Railway   │─────────────┘
+                    │ (Rust API)  │
+                    └──────┬──────┘
+                           │
+                    ┌──────▼──────┐
+                    │   Upstash   │
+                    │   (Redis)   │
+                    └─────────────┘
 ```
 
 **Monthly Cost: $0-5** using free tiers
@@ -65,9 +73,9 @@ This wedding planner is being built for **Segy & Azizah's wedding** on **Septemb
 ## 📁 Project Structure
 
 ```
-segy-azizah-wedding/
+wedding-planner/
 ├── README.md
-├── CLAUDE.md                 # AI context for Claude Pro
+├── CLAUDE.md                 # AI context for Claude
 ├── .github/
 │   └── workflows/
 │       ├── ci.yml            # Main CI/CD pipeline
@@ -95,16 +103,19 @@ segy-azizah-wedding/
 │       ├── composables/      # Vue composables
 │       └── api/              # API client
 │
-├── crawler/                  # 🕷️ Wedding Event Crawler
+├── crawler/                  # 🕷️ Wedding Vendor Crawler
 │   ├── Cargo.toml
 │   └── src/
+│
+├── proto/                    # 📡 Protocol Buffer Definitions
+│   └── *.proto
 │
 ├── migrations/               # 📦 Database Migrations
 │   ├── 001_initial.up.sql
 │   └── 001_initial.down.sql
 │
 ├── data/                     # 📊 Seed Data
-│   └── vendors/              # Vendor info from PDFs
+│   └── vendors/              # Vendor info
 │
 └── docs/                     # 📚 Documentation
     ├── 01_PROJECT_OVERVIEW.md
@@ -124,7 +135,7 @@ segy-azizah-wedding/
 
 ### Prerequisites
 
-- [Rust](https://rustup.rs/) 1.75+
+- [Rust](https://rustup.rs/) 1.85+
 - [Node.js](https://nodejs.org/) 20+
 - [Docker](https://www.docker.com/) (for local development)
 - [PostgreSQL](https://www.postgresql.org/) 16+ (or use Docker)
@@ -133,8 +144,8 @@ segy-azizah-wedding/
 
 ```bash
 # Clone the repository
-git clone https://github.com/segy/segy-azizah-wedding.git
-cd segy-azizah-wedding
+git clone https://github.com/your-username/wedding-planner.git
+cd wedding-planner
 
 # Start local services (PostgreSQL + Redis)
 docker compose up -d
@@ -172,8 +183,8 @@ VITE_API_URL=http://localhost:8080/v1
 
 | Role | Users | Permissions |
 |------|-------|-------------|
-| `admin` | Segy, Azizah | Full CRUD on all data |
-| `family` | Parents, siblings | Read-only, prices hidden (toggleable) |
+| `admin` | Event organizers | Full CRUD on all data |
+| `family` | Close family members | Read-only, prices hidden (toggleable) |
 | `guest` | Invited guests | View invitation, submit RSVP |
 
 ---
@@ -183,14 +194,14 @@ VITE_API_URL=http://localhost:8080/v1
 Key entities with ownership tracking:
 
 ```sql
--- Guest ownership
-CREATE TYPE belongs_to AS ENUM ('segy', 'azizah', 'both');
+-- Ownership split between parties
+CREATE TYPE belongs_to AS ENUM ('party_a', 'party_b', 'both');
 
 -- Guests table with ownership
 CREATE TABLE guests (
     id UUID PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
-    belongs_to belongs_to DEFAULT 'both',  -- Whose guest?
+    belongs_to belongs_to DEFAULT 'both',
     -- ...
 );
 
@@ -198,12 +209,12 @@ CREATE TABLE guests (
 CREATE TABLE budget_items (
     id UUID PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
-    belongs_to belongs_to DEFAULT 'both',  -- Who pays?
+    belongs_to belongs_to DEFAULT 'both',
     -- ...
 );
 ```
 
-See [03_DATABASE_DESIGN.md](docs/03_DATABASE_DESIGN_v3.md) for complete schema.
+See [03_DATABASE_DESIGN.md](docs/03_DATABASE_DESIGN.md) for complete schema.
 
 ---
 
@@ -245,6 +256,20 @@ See [04_API_SPECIFICATION.md](docs/04_API_SPECIFICATION.md) for complete API doc
 
 ---
 
+## ⚡ High Concurrency Design
+
+This project is designed for scale:
+
+- **Async runtime** — Tokio + Actix-web for non-blocking I/O
+- **Connection pooling** — `deadpool` / `bb8` for PostgreSQL and Redis
+- **Caching** — Redis for hot data (dashboard stats, vendor listings)
+- **Rate limiting** — Redis-backed per-user / per-API-key rate limiter
+- **Stateless API** — Horizontal scaling behind load balancer
+- **Bulk operations** — Batch inserts, async job queues
+- **gRPC internal** — Low-latency service-to-service communication
+
+---
+
 ## 🧪 Testing
 
 ```bash
@@ -259,6 +284,9 @@ cargo tarpaulin --out Html
 cd web
 npm run test
 npm run test:e2e
+
+# Load testing
+k6 run tests/load/budget-api.js
 ```
 
 ---
@@ -295,57 +323,55 @@ See [07_DEVOPS_HOSTING_GUIDE.md](docs/07_DEVOPS_HOSTING_GUIDE.md) for detailed d
 | Document | Description |
 |----------|-------------|
 | [CLAUDE.md](CLAUDE.md) | Context for Claude AI assistance |
-| [01_PROJECT_OVERVIEW.md](docs/01_PROJECT_OVERVIEW_v2.md) | Project summary and goals |
+| [01_PROJECT_OVERVIEW.md](docs/01_PROJECT_OVERVIEW.md) | Project summary and goals |
 | [02_SYSTEM_ARCHITECTURE.md](docs/02_SYSTEM_ARCHITECTURE.md) | Architecture diagrams |
-| [03_DATABASE_DESIGN.md](docs/03_DATABASE_DESIGN_v3.md) | Complete SQL schema |
+| [03_DATABASE_DESIGN.md](docs/03_DATABASE_DESIGN.md) | Complete SQL schema |
 | [04_API_SPECIFICATION.md](docs/04_API_SPECIFICATION.md) | REST API documentation |
 | [05_RUST_LEARNING_GUIDE.md](docs/05_RUST_LEARNING_GUIDE.md) | Rust tutorial (Go/PHP comparison) |
 | [06_VENDOR_COMPARISON.md](docs/06_VENDOR_COMPARISON.md) | Vendor data and pricing |
 | [07_DEVOPS_HOSTING_GUIDE.md](docs/07_DEVOPS_HOSTING_GUIDE.md) | CI/CD and hosting setup |
 | [08_IMPLEMENTATION_PLAN.md](docs/08_IMPLEMENTATION_PLAN.md) | Development timeline |
-| [09_CRAWLER_DESIGN.md](docs/09_CRAWLER_DESIGN.md) | Wedding event crawler |
+| [09_CRAWLER_DESIGN.md](docs/09_CRAWLER_DESIGN.md) | Wedding vendor crawler |
 
 ---
 
 ## 🎓 Learning Resources
 
-This project is designed as a Rust learning experience. Recommended resources:
+This project covers multiple learning goals:
 
+### Rust
 1. **[The Rust Book](https://doc.rust-lang.org/book/)** — Official tutorial
 2. **[Rustlings](https://github.com/rust-lang/rustlings)** — Practice exercises
 3. **[Zero to Production](https://www.zero2prod.com/)** — Building APIs in Rust
 4. **[Actix Web Examples](https://github.com/actix/examples)** — Framework examples
 
-See [05_RUST_LEARNING_GUIDE.md](docs/05_RUST_LEARNING_GUIDE.md) for concepts mapped to Go/PHP.
+### gRPC
+1. **[Tonic](https://github.com/hyperium/tonic)** — Rust gRPC framework
+2. **[Protocol Buffers](https://protobuf.dev/)** — Serialization format
+3. **[gRPC Docs](https://grpc.io/docs/)** — Official documentation
+
+### NoSQL
+1. **[Redis University](https://university.redis.io/)** — Free courses
+2. **[MongoDB Rust Driver](https://www.mongodb.com/docs/drivers/rust/current/)** — Official docs
 
 ---
 
 ## 🤝 Contributing
 
-This is a personal project, but suggestions are welcome! Feel free to:
+Contributions are welcome! Feel free to:
 
 - Open issues for bugs or feature ideas
 - Submit PRs for improvements
-- Share wedding planning tips 😄
+- Suggest wedding planning features
 
 ---
 
 ## 📄 License
 
-MIT License — feel free to use this as a template for your own wedding planner!
-
----
-
-## 💑 About Us
-
-**Segy & Azizah** — Getting married on September 19-20, 2026 in Semarang, Central Java, Indonesia.
-
-Building this app together as we plan our wedding! 🎉
+MIT License — feel free to use this as a template for your own wedding planner or event management platform!
 
 ---
 
 <p align="center">
-  Made with ❤️ in Tokyo, Japan
-  <br>
-  <sub>Wedding Date: September 19-20, 2026</sub>
+  Made with ❤️ and 🦀
 </p>
