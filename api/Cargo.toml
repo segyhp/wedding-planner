@@ -20,3 +20,24 @@ dotenvy = "0.15"
 # Structured logging (like Go's slog or zerolog)
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+//# Database: SQL query builder + connection pool (like Go's sqlx, but with compile-time SQL checking!)
+# "postgres" = PostgreSQL driver
+# "runtime-tokio-rustls" = async runtime (Tokio) + TLS (rustls, no OpenSSL dependency)
+# "macros" = enables query!() and query_as!() macros that check SQL at compile time
+# "migrate" = enables sqlx::migrate!() for running migrations from code
+# "uuid" = native UUID support in SQL queries
+# "chrono" = native DateTime support in SQL queries
+sqlx = { version = "0.8", features = ["postgres", "runtime-tokio-rustls", "macros", "migrate", "uuid", "chrono"] }
+
+# UUID generation (like Go's github.com/google/uuid)
+# "v4" = random UUIDs (UUID v4 — what we'll use for primary keys)
+# "serde" = allows UUIDs to serialize/deserialize as JSON strings automatically
+uuid = { version = "1", features = ["v4", "serde"] }
+
+# Date and time handling (like Go's time package, but richer)
+# "serde" = allows DateTime to serialize/deserialize as JSON automatically
+chrono = { version = "0.4", features = ["serde"] }
+
+# CORS middleware — allows browser (localhost:5173) to call API (localhost:8080) during development
+# In Go, you'd use github.com/rs/cors or a middleware from your framework
+actix-cors = "0.7"
